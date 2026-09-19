@@ -32,7 +32,7 @@ jobs:
 
       - name: Create Cordova Project & Build
         run: |
-          cordova create myapp com.example.myapp "MyHTMLApp"
+          cordova create myapp com.example.myapp "F1-Racer"
           rm -rf myapp/www/*
           cp -r index.html myapp/www/ || true
           # Copy external assets if present
