@@ -1,53 +1,48 @@
-name: Build F1 Racer APK
-
+name: Build HTML to APK
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch: # Allows you to run the build manually from the Actions tab
+    branches: [ main, master ]
 
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
-      - name: Setup Java (JDK 17)
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '17'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Initialize Capacitor & Build APK
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Create Cordova Project & Build
         run: |
-          # 1. Initialize a basic Node project
-          npm init -y
-          
-          # 2. Install Capacitor (The bridge between HTML and Android)
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          
-          # 3. Initialize Capacitor (App Name, Android Package Name, Web Folder)
-          npx cap init "F1 Racer" com.f1racer.app --web-dir=.
-          
-          # 4. Add the Android platform and sync your HTML files into it
-          npx cap add android
-          npx cap sync android
-          
-          # 5. Compile the Debug APK using Gradle
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          cordova create myapp com.example.myapp "MyHTMLApp"
+          rm -rf myapp/www/*
+          cp -r index.html myapp/www/ || true
+          # Also copy assets if they exist (ignoring errors if they don't)
+          cp -r *.css myapp/www/ 2>/dev/null || true
+          cp -r *.js myapp/www/ 2>/dev/null || true
+          cp -r *.png myapp/www/ 2>/dev/null || true
+          cp -r *.jpg myapp/www/ 2>/dev/null || true
+          cd myapp
+          cordova platform add android
+          cordova build android --debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: F1-Racer-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: debug-apk
+          path: myapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
