@@ -23,10 +23,9 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          accept-android-sdk-licenses: true
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Install Cordova
         run: npm install -g cordova
@@ -36,7 +35,7 @@ jobs:
           cordova create myapp com.example.myapp "MyHTMLApp"
           rm -rf myapp/www/*
           cp -r index.html myapp/www/ || true
-          # Also copy assets if they exist (ignoring errors if they don't exist)
+          # Copy external assets if presen
           cd myapp
           cordova platform add android
           cordova build android --debug
